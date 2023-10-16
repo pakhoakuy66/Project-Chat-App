@@ -12,11 +12,11 @@ var DB *gorm.DB
 
 func ConnectDatabase(username string, password string, dbname string) {
 	dsn := fmt.Sprintf("%[1]s:%[2]s@tcp(127.0.0.1:3306)/%[3]s?charset=utf8mb4&parseTime=True&loc=Local", username, password, dbname)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
+	var err error
+	if DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{}); err != nil {
 		log.Fatal("Failed to connect to the database")
-	} else {
-		fmt.Println("Successfully connect to the database")
 	}
-	DB = db
+	if err = DB.AutoMigrate(&User{}); err != nil {
+		log.Fatal("Failed to migrate tables to the database")
+	}
 }
