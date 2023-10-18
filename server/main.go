@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
+	"server/controllers"
 	"server/models"
 	"server/routes"
 )
@@ -18,7 +19,7 @@ func main() {
 	models.ConnectDatabase(username, password, database)
 	r := gin.Default()
 	routes.InitUserRoute(r)
-	r.Run(fmt.Sprintf("localhost:%s", port))
+	r.Run(":" + port)
 }
 
 func setupEnvironment() {
@@ -29,4 +30,5 @@ func setupEnvironment() {
 	username = os.Getenv("DBUSERNAME")
 	password = os.Getenv("DBPASSWORD")
 	database = os.Getenv("DATABASE")
+	controllers.SetJwtKey(os.Getenv("JWTKEY"))
 }
