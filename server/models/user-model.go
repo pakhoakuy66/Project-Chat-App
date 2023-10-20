@@ -5,9 +5,10 @@ import (
 )
 
 type User struct {
-	ID          uint   `gorm:"primaryKey;autoIncrement"`
-	Username    string `gorm:"type:varchar(50);unique"`
-	Password    string `gorm:"type:char(60)"`
+	UUID        string `gorm:"type:char(36);primaryKey"`
+	ID          uint   `gorm:"unique;autoIncrement"`
+	Username    string `gorm:"type:varchar(50);unique;index;check username NOT LIKE '% %'"`
+	Password    string `gorm:"type:varchar(60)"`
 	Gender      bool
 	FirstName   string    `gorm:"type:nvarchar(50)"`
 	LastName    string    `gorm:"type:nvarchar(50)"`
@@ -16,4 +17,11 @@ type User struct {
 	BirthDay    time.Time `gorm:"type:date"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+
+func (user *User) GenderStr() string {
+	if user.Gender {
+		return "male"
+	}
+	return "female"
 }

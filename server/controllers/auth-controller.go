@@ -2,10 +2,11 @@ package controllers
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 
 	"server/models"
 	"server/services"
@@ -14,7 +15,7 @@ import (
 type RegisterRequest struct {
 	Username    string    `json:"username" binding:"required"`
 	Password    string    `json:"password" binding:"required"`
-	Gender      bool      `json:"gender" binding:"required"`
+	Gender      string    `json:"gender" binding:"required"`
 	FirstName   string    `json:"firstname" binding:"required"`
 	LastName    string    `json:"lastname" binding:"required"`
 	Email       string    `json:"email" binding:"required"`
@@ -27,27 +28,28 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-type UserClaims struct {
-	ID          uint      `json:"id"`
-	Username    string    `json:"username"`
-	FirstName   string    `json:"firstname"`
-	LastName    string    `json:"lastname"`
-	Email       string    `json:"email"`
-	PhoneNumber string    `json:"phonenumber"`
-	BirthDay    time.Time `json:"birthday"`
-	jwt.RegisteredClaims
-}
-
-var jwtKey []byte
-
-func SetJwtKey(key string) {
-	jwtKey = []byte(key)
-}
-
 func Register(ctx *gin.Context) {
 	var req RegisterRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if strings.Contains(req.Username, " ") || strings.Contains(req.Password, " ") {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "Username and Password must not contain spaces",
+		})
+		return
+	}
+	if req.Gender != "male" && req.Gender != "female" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "Gender must either be male or female",
+		})
+		return
+	}
+	if req.Gender != "male" && req.Gender != "female" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "Gender must either be male or female",
+		})
 		return
 	}
 	hashedPassword, err := services.HashPassword(req.Password)
@@ -56,9 +58,10 @@ func Register(ctx *gin.Context) {
 		return
 	}
 	user := models.User{
+		UUID:        uuid.NewString(),
 		Username:    req.Username,
 		Password:    hashedPassword,
-		Gender:      req.Gender,
+		Gender:      req.Gender == "male",
 		FirstName:   req.FirstName,
 		LastName:    req.LastName,
 		Email:       req.Email,
@@ -87,29 +90,55 @@ func Login(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	expirationTime := time.Now().Add(5 * time.Minute)
-	claims := UserClaims{
-		ID:          result.ID,
-		Username:    result.Username,
-		FirstName:   result.FirstName,
-		LastName:    result.LastName,
-		Email:       result.Email,
-		PhoneNumber: result.PhoneNumber,
-		BirthDay:    result.BirthDay,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &claims)
-	tokenString, err := token.SignedString(jwtKey)
+	tokenString, err := services.GenerateToken(&result)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	expirationDuration := expirationTime.Sub(time.Now())
-	ctx.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173, http://localhost:80")
-	ctx.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-	ctx.SetCookie("Authorization", "Bearer "+tokenString,
-		int(expirationDuration.Seconds()), "/", "localhost", false, true)
-	ctx.Status(http.StatusOK)
+	ctx.SetCookie(
+		"Authorization",
+		tokenString,
+		int(services.ExpirationDuration()),
+		"/",
+		"localhost",
+		false,
+		true,
+	)
+	ctx.JSON(http.StatusOK, gin.H{"token": tokenString})
+}
+
+func Refresh(ctx *gin.Context) {
+	claims := ctx.MustGet("userclaims").(*services.UserClaims)
+	tokenString, err := services.RefreshToken(claims)
+	if err != nil {
+		switch err.(type) {
+		case *services.EarlyRefreshError:
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		default:
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+	ctx.SetCookie(
+		"Authorization",
+		tokenString,
+		int(services.ExpirationDuration()),
+		"/",
+		"localhost",
+		false,
+		true,
+	)
+}
+
+func Logout(ctx *gin.Context) {
+	ctx.SetCookie(
+		"Authorization",
+		"",
+		-1,
+		"/",
+		"localhost",
+		false,
+		true,
+	)
 }
