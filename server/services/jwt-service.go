@@ -8,7 +8,7 @@ import (
 	"server/models"
 )
 
-type UserClaims struct {
+type Claims struct {
 	UUID        string    `json:"uuid"`
 	Username    string    `json:"username"`
 	Gender      string    `json:"gender"`
@@ -17,36 +17,18 @@ type UserClaims struct {
 	Email       string    `json:"email"`
 	PhoneNumber string    `json:"phonenumber"`
 	BirthDay    time.Time `json:"birthday"`
+	CreatedAt   time.Time `json:"createdat"`
 	jwt.RegisteredClaims
-}
-
-type EarlyRefreshError struct{}
-
-func (err *EarlyRefreshError) Error() string {
-	return "Too early to refresh this token"
 }
 
 var jwtKey []byte
 
-func JwtKey() []byte {
-	return jwtKey
-}
-
 func SetJwtKey(key string) {
-	jwtKey = []byte(jwtKey)
+	jwtKey = []byte(key)
 }
 
-var expirationDuration time.Duration = 5 * time.Minute
-
-func ExpirationDuration() time.Duration {
-	return expirationDuration
-}
-
-var renewAt time.Duration = 30 * time.Second
-
-func GenerateToken(user *models.User) (tokenString string, err error) {
-	expirationTime := time.Now().Add(expirationDuration)
-	claims := UserClaims{
+func GenerateToken(user *models.User, expirationTime time.Time) (string, error) {
+	claims := Claims{
 		UUID:        user.UUID,
 		Username:    user.Username,
 		Gender:      user.GenderStr(),
@@ -55,20 +37,11 @@ func GenerateToken(user *models.User) (tokenString string, err error) {
 		Email:       user.Email,
 		PhoneNumber: user.PhoneNumber,
 		BirthDay:    user.BirthDay,
+		CreatedAt:   user.CreatedAt,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &claims)
-	return token.SignedString(jwtKey)
-}
-
-func RefreshToken(claims *UserClaims) (string, error) {
-	if time.Until(claims.ExpiresAt.Time) > renewAt {
-		return "", &EarlyRefreshError{}
-	}
-	expirationTime := time.Now().Add(expirationDuration)
-	claims.ExpiresAt = jwt.NewNumericDate(expirationTime)
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtKey)
 }

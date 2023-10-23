@@ -2,14 +2,11 @@ package controllers
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 
 	"server/models"
-	"server/services"
 )
 
 type RegisterRequest struct {
@@ -29,111 +26,63 @@ type LoginRequest struct {
 }
 
 func Register(ctx *gin.Context) {
-	var req RegisterRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	user, exists := ctx.Get("newuser")
+	if !exists {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "something went wrong"})
 		return
 	}
-	if strings.Contains(req.Username, " ") || strings.Contains(req.Password, " ") {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "Username and Password must not contain spaces",
-		})
-		return
-	}
-	if req.Gender != "male" && req.Gender != "female" {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "Gender must either be male or female",
-		})
-		return
-	}
-	if req.Gender != "male" && req.Gender != "female" {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "Gender must either be male or female",
-		})
-		return
-	}
-	hashedPassword, err := services.HashPassword(req.Password)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	user := models.User{
-		UUID:        uuid.NewString(),
-		Username:    req.Username,
-		Password:    hashedPassword,
-		Gender:      req.Gender == "male",
-		FirstName:   req.FirstName,
-		LastName:    req.LastName,
-		Email:       req.Email,
-		PhoneNumber: req.PhoneNumber,
-		BirthDay:    req.BirthDay,
-	}
-	result := models.DB.Create(&user)
+	result := models.DB.Create(user.(*models.User))
 	if err := result.Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"user": req})
+	ctx.JSON(http.StatusOK, gin.H{"user": user.(*models.User)})
 }
 
 func Login(ctx *gin.Context) {
-	var req LoginRequest
-	var result models.User
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	}
-	if err := models.DB.Where(&models.User{Username: req.Username}).First(&result).Error; err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-		return
-	}
-	if err := services.CheckPassword(req.Password, result.Password); err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-		return
-	}
-	tokenString, err := services.GenerateToken(&result)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	accessToken, exists := ctx.Get("accesstoken")
+	refreshToken, exists2 := ctx.Get("refreshtoken")
+	maxage, exists3 := ctx.Get("maxage")
+	if !exists || !exists2 || !exists3 {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "something went wrong"})
 		return
 	}
 	ctx.SetCookie(
-		"Authorization",
-		tokenString,
-		int(services.ExpirationDuration()),
+		"AccessToken",
+		accessToken.(string),
+		maxage.(int),
 		"/",
 		"localhost",
 		false,
 		true,
 	)
-	ctx.JSON(http.StatusOK, gin.H{"token": tokenString})
-}
-
-func Refresh(ctx *gin.Context) {
-	claims := ctx.MustGet("userclaims").(*services.UserClaims)
-	tokenString, err := services.RefreshToken(claims)
-	if err != nil {
-		switch err.(type) {
-		case *services.EarlyRefreshError:
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-	}
 	ctx.SetCookie(
-		"Authorization",
-		tokenString,
-		int(services.ExpirationDuration()),
+		"RefreshToken",
+		refreshToken.(string),
+		maxage.(int),
 		"/",
 		"localhost",
 		false,
 		true,
 	)
+	ctx.JSON(http.StatusOK, gin.H{
+		"accesstoken":  accessToken,
+		"refreshtoken": refreshToken,
+	})
 }
 
 func Logout(ctx *gin.Context) {
 	ctx.SetCookie(
-		"Authorization",
+		"AccessToken",
+		"",
+		-1,
+		"/",
+		"localhost",
+		false,
+		true,
+	)
+	ctx.SetCookie(
+		"RefreshToken",
 		"",
 		-1,
 		"/",
