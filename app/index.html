@@ -3,13 +3,52 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
+    <title>ChatApp</title>
   </head>
-  <body>
-    <!--  -->
-    <a href="/login/">login</a>
-    <a href="/register/">register</a>
-    <!--  -->
+  <body
+    class="relative flex min-h-screen flex-col bg-[#99CDD8]"
+  >
+    <nav class="h-1/10 absolute flex w-full items-center px-10 py-3">
+      <img src="/images/779461.png" alt="" class="mr-auto h-20 w-20" />
+      <ul class="flex gap-16 text-xl font-semibold">
+        <li
+          class="from-blue-600 via-indigo-500 to-pink-500 after:block after:h-1 after:w-full after:rounded-full after:bg-transparent after:transition-colors hover:bg-gradient-to-r hover:bg-clip-text hover:text-transparent after:hover:bg-gradient-to-r"
+        >
+          <a href="">For developers</a>
+        </li>
+        <li
+          class="from-blue-600 via-indigo-500 to-pink-500 after:block after:h-1 after:w-full after:rounded-full after:bg-transparent after:transition-colors hover:bg-gradient-to-r hover:bg-clip-text hover:text-transparent after:hover:bg-gradient-to-r"
+        >
+          <a href="">Fearure</a>
+        </li>
+        <li
+          class="via-indigo-500to-pink-500 from-blue-600 to-pink-500 after:block after:h-1 after:w-full after:rounded-full after:bg-transparent after:transition-colors hover:bg-gradient-to-r hover:bg-clip-text hover:text-transparent after:hover:bg-gradient-to-r"
+        >
+          <a href="/register/">Register</a>
+        </li>
+      </ul>
+    </nav>
+    <main class="m-auto flex items-center">
+      <div class="flex flex-col items-center justify-center gap-10">
+        <h1
+          class="bg-gradient-to-r from-blue-600 via-indigo-500 to-pink-500 bg-clip-text text-center text-7xl text-transparent"
+        >
+          Gathering anytime, anywhere.
+        </h1>
+        <p class="text-center text-xl">
+          With Chat-App, connecting with the people you love is simple and fun.
+        </p>
+        <div class="flex gap-10">
+          <a
+            href="/login/"
+            class="rounded-md border border-white bg-white bg-gradient-to-r from-cyan-500 via-indigo-500 to-blue-500 px-24 py-2 font-medium uppercase text-black transition-colors hover:bg-gradient-to-r hover:from-blue-600 hover:to-pink-500 hover:text-white"
+          >
+            login
+          </a>
+        </div>
+      </div>
+      <img src="/images/_QMx1r9O3wW.png " alt="" class="w-[50rem]" />
+    </main>
     <script type="module" src="/src/index/main.ts"></script>
   </body>
 </html>

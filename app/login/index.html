@@ -4,13 +4,55 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
     <title>Vite + TS</title>
   </head>
-  <body>
-    <!--  -->
-    <a href="/">index</a>
-    <a href="/register/">register</a>
-    <!--  -->
+  <body
+    class="flex min-h-screen items-center justify-center bg-[#99CDD8] bg-cover bg-center bg-no-repeat"
+  >
+    <form
+      class="flex flex-col items-center gap-4 rounded-xl bg-[hsla(215,28%,17%,.8)] p-10 text-white"
+    >
+      <h1 class="text-center text-4xl font-bold">Login</h1>
+      <div>
+        <input
+          class="w-60 rounded-lg p-2 text-black outline-0 transition duration-150 hover:bg-[#FFE4E1]"
+          type="text"
+          placeholder="Username"
+          required
+        />
+        <i class="fa-solid fa-user"></i>
+      </div>
+      <div>
+        <input
+          class="w-60 rounded-lg p-2 text-black outline-0 transition duration-150 hover:bg-[#FFE4E1]"
+          type="password"
+          placeholder="Password"
+          required
+        />
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <button
+        type="submit"
+        class="h-8 w-20 rounded-md bg-orange-300 transition duration-150 hover:bg-[#2980b9]"
+      >
+        Login
+      </button>
+      <div class="flex flex-col items-center">
+        <a href="." class="italic underline hover:text-[#C6E2FF]">
+          Forgot password
+        </a>
+        <div class="flex gap-2">
+          <span>Don't have an account?</span>
+          <a href="/register/" class="italic underline hover:text-[#C6E2FF]">
+            register
+          </a>
+        </div>
+      </div>
+    </form>
     <script type="module" src="/src/login/main.ts"></script>
   </body>
 </html>
