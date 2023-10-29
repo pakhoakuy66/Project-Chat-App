@@ -1,15 +1,23 @@
 package routes
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 
 	"server/controllers"
-	"server/middlewares"
 )
 
 func InitAuthRoute(r *gin.Engine) {
 	authRoute := r.Group("/auth")
-	authRoute.POST("/register",  controllers.Register)
-	authRoute.POST("/login",  middlewares.AllowCredentials, controllers.Login)
-	authRoute.POST("/logout", middlewares.AllowCredentials, controllers.Logout)
+	authRoute.GET("/test", func(ctx *gin.Context) {
+		cookie, err := ctx.Cookie("Authorization")
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		fmt.Println(cookie)
+	})
+	authRoute.POST("/register", controllers.Register)
+	authRoute.POST("/login", controllers.Login)
+	authRoute.POST("/logout", controllers.Logout)
 }

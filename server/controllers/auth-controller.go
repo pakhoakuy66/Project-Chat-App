@@ -84,7 +84,7 @@ func Register(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"user": user})
+	ctx.Status(http.StatusOK)
 }
 
 func Login(ctx *gin.Context) {
@@ -133,9 +133,7 @@ func Login(ctx *gin.Context) {
 		false,
 		true,
 	)
-	ctx.JSON(http.StatusOK, gin.H{
-		"Authorization": string(authorizationCookie),
-	})
+	ctx.Status(http.StatusOK)
 }
 
 func Logout(ctx *gin.Context) {
