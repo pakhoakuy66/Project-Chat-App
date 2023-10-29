@@ -9,7 +9,7 @@ import (
 
 func InitAuthRoute(r *gin.Engine) {
 	authRoute := r.Group("/auth")
-	authRoute.POST("/register", middlewares.Validate, controllers.Register)
-	authRoute.POST("/login", middlewares.Authenticate, middlewares.AllowCredentials, controllers.Login)
+	authRoute.POST("/register",  controllers.Register)
+	authRoute.POST("/login",  middlewares.AllowCredentials, controllers.Login)
 	authRoute.POST("/logout", middlewares.AllowCredentials, controllers.Logout)
 }

@@ -9,7 +9,7 @@ import (
 )
 
 type Claims struct {
-	UUID        string    `json:"uuid"`
+	ID          uint      `json:"id"`
 	Username    string    `json:"username"`
 	Gender      string    `json:"gender"`
 	FirstName   string    `json:"firstname"`
@@ -29,7 +29,7 @@ func SetJwtKey(key string) {
 
 func GenerateToken(user *models.User, expirationTime time.Time) (string, error) {
 	claims := Claims{
-		UUID:        user.UUID,
+		ID:          user.ID,
 		Username:    user.Username,
 		Gender:      user.GenderStr(),
 		FirstName:   user.FirstName,
