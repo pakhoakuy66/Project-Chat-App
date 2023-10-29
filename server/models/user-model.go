@@ -5,8 +5,7 @@ import (
 )
 
 type User struct {
-	UUID        string `gorm:"type:char(36);primaryKey"`
-	ID          uint   `gorm:"unique;autoIncrement"`
+	ID          uint   `gorm:"primaryKey;autoIncrement"`
 	Username    string `gorm:"type:varchar(50);unique;index;check username NOT LIKE '% %'"`
 	Password    string `gorm:"type:varchar(60)"`
 	Gender      bool
