@@ -125,25 +125,26 @@ func Login(ctx *gin.Context) {
 		return
 	}
 	ctx.SetCookie(
-		"Authorization",
+		"tokens",
 		string(authorizationCookie),
 		int(refreshTokenDuration.Seconds()),
 		"/",
 		"localhost",
 		false,
-		true,
+		false,
 	)
 	ctx.Status(http.StatusOK)
 }
 
 func Logout(ctx *gin.Context) {
 	ctx.SetCookie(
-		"Authorization",
+		"tokens",
 		"",
 		-1,
 		"/",
 		"localhost",
 		false,
-		true,
+		false,
 	)
+	ctx.Status(http.StatusOK)
 }
