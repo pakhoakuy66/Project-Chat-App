@@ -58,12 +58,6 @@ func Register(ctx *gin.Context) {
 		})
 		return
 	}
-	if req.Gender != "male" && req.Gender != "female" {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "Gender must either be male or female",
-		})
-		return
-	}
 	hashedPassword, err = services.HashPassword(req.Password)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
