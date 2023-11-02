@@ -2,39 +2,43 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/http"
 	"os"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
 	"server/models"
+	"server/routes"
+	"server/services"
 )
 
 var port, username, password, database string
 
+var corsConfig cors.Config
+
 func main() {
 	setupEnvironment()
 	models.ConnectDatabase(username, password, database)
-	router := gin.Default()
-	router.GET("/", func(ctx *gin.Context) {
-		ctx.IndentedJSON(http.StatusOK, gin.H{
-			"Hello": "World",
-		})
-	})
-	router.Run(fmt.Sprintf("localhost:%s", port))
+	r := gin.Default()
+	r.Use(cors.New(corsConfig))
+	routes.InitAuthRoute(r)
+	r.Run(":" + port)
 }
 
 func setupEnvironment() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	} else {
-		fmt.Println("Successfully loaded .env file")
+	if err := godotenv.Load(); err != nil {
+		fmt.Println(".env not found")
 	}
 	port = os.Getenv("PORT")
 	username = os.Getenv("DBUSERNAME")
 	password = os.Getenv("DBPASSWORD")
 	database = os.Getenv("DATABASE")
+	services.SetJwtKey(os.Getenv("JWTKEY"))
+	corsConfig = cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{
+        "http://localhost:5173",
+        "http://localhost:80",
+    }
+	corsConfig.AllowCredentials = true
 }
