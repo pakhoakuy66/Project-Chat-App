@@ -8,9 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
-	"server/models"
-	"server/routes"
-	"server/services"
+	"server/model"
+	"server/route"
+	"server/service"
 )
 
 var port, username, password, database string
@@ -19,10 +19,11 @@ var corsConfig cors.Config
 
 func main() {
 	setupEnvironment()
-	models.ConnectDatabase(username, password, database)
+	model.ConnectDatabase(username, password, database)
 	r := gin.Default()
 	r.Use(cors.New(corsConfig))
-	routes.InitAuthRoute(r)
+	route.InitAuthRoute(r)
+	route.InitFriendRoute(r)
 	r.Run(":" + port)
 }
 
@@ -34,11 +35,11 @@ func setupEnvironment() {
 	username = os.Getenv("DBUSERNAME")
 	password = os.Getenv("DBPASSWORD")
 	database = os.Getenv("DATABASE")
-	services.SetJwtKey(os.Getenv("JWTKEY"))
+	service.SetJwtKey(os.Getenv("JWTKEY"))
 	corsConfig = cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{
-        "http://localhost:5173",
-        "http://localhost:80",
-    }
+		"http://localhost:5173",
+		"http://localhost:80",
+	}
 	corsConfig.AllowCredentials = true
 }

@@ -1,11 +1,11 @@
-package services
+package service
 
 import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 
-	"server/models"
+	"server/model"
 )
 
 type Claims struct {
@@ -27,7 +27,7 @@ func SetJwtKey(key string) {
 	jwtKey = []byte(key)
 }
 
-func GenerateToken(user *models.User, expirationTime time.Time) (string, error) {
+func GenerateToken(user *model.User, expirationTime time.Time) (string, error) {
 	claims := Claims{
 		ID:          user.ID,
 		Username:    user.Username,

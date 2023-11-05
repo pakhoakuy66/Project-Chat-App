@@ -1,15 +1,14 @@
-package controllers
+package controller
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 
-	"server/models"
-	"server/services"
+	"server/model"
+	"server/service"
 )
 
 type RegisterRequest struct {
@@ -28,7 +27,7 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-type AuthorizationCookie struct {
+type Authorization struct {
 	AccessToken  string `json:"accesstoken"`
 	RefreshToken string `json:"refreshtoken"`
 }
@@ -41,7 +40,7 @@ func Register(ctx *gin.Context) {
 	var req RegisterRequest
 	var err error
 	var hashedPassword string
-	var user models.User
+	var user model.User
 	if err = ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -58,12 +57,12 @@ func Register(ctx *gin.Context) {
 		})
 		return
 	}
-	hashedPassword, err = services.HashPassword(req.Password)
+	hashedPassword, err = service.HashPassword(req.Password)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	user = models.User{
+	user = model.User{
 		Username:    req.Username,
 		Password:    hashedPassword,
 		Gender:      req.Gender == "male",
@@ -73,7 +72,7 @@ func Register(ctx *gin.Context) {
 		PhoneNumber: req.PhoneNumber,
 		BirthDay:    req.BirthDay,
 	}
-	result := models.DB.Create(&user)
+	result := model.DB.Create(&user)
 	if err = result.Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -84,61 +83,37 @@ func Register(ctx *gin.Context) {
 func Login(ctx *gin.Context) {
 	var req LoginRequest
 	var err error
-	var result models.User
+	var result model.User
 	var accessToken string
 	var refreshToken string
-	var authorizationCookie []byte
 	if err = ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err = models.DB.Where(&models.User{Username: req.Username}).First(&result).Error; err != nil {
+	if err = model.DB.Where(&model.User{Username: req.Username}).First(&result).Error; err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	if err = services.CheckPassword(req.Password, result.Password); err != nil {
+	if err = service.CheckPassword(req.Password, result.Password); err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	accessToken, err = services.GenerateToken(&result, time.Now().Add(accessTokenDuration))
+	accessToken, err = service.GenerateToken(&result, time.Now().Add(accessTokenDuration))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	refreshToken, err = services.GenerateToken(&result, time.Now().Add(refreshTokenDuration))
+	refreshToken, err = service.GenerateToken(&result, time.Now().Add(refreshTokenDuration))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	authorizationCookie, err = json.Marshal(AuthorizationCookie{
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, Authorization{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	})
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	ctx.SetCookie(
-		"tokens",
-		string(authorizationCookie),
-		int(refreshTokenDuration.Seconds()),
-		"/",
-		"localhost",
-		false,
-		false,
-	)
-	ctx.Status(http.StatusOK)
-}
-
-func Logout(ctx *gin.Context) {
-	ctx.SetCookie(
-		"tokens",
-		"",
-		-1,
-		"/",
-		"localhost",
-		false,
-		false,
-	)
-	ctx.Status(http.StatusOK)
 }
