@@ -27,14 +27,9 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-type Authorization struct {
-	AccessToken  string `json:"accesstoken"`
-	RefreshToken string `json:"refreshtoken"`
-}
-
 var accessTokenDuration = 10 * time.Minute
 
-var refreshTokenDuration = accessTokenDuration * 2
+var extendDuration = 10 * time.Minute
 
 func Register(ctx *gin.Context) {
 	var req RegisterRequest
@@ -84,8 +79,7 @@ func Login(ctx *gin.Context) {
 	var req LoginRequest
 	var err error
 	var result model.User
-	var accessToken string
-	var refreshToken string
+	var tokenStr string
 	if err = ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -98,22 +92,53 @@ func Login(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	accessToken, err = service.GenerateToken(&result, time.Now().Add(accessTokenDuration))
+	tokenStr, err = service.GenerateTokenWithUser(&result, time.Now().Add(accessTokenDuration))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	refreshToken, err = service.GenerateToken(&result, time.Now().Add(refreshTokenDuration))
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	ctx.JSON(http.StatusOK, gin.H{
+		"jwt": tokenStr,
+	})
+}
+
+func Refresh(ctx *gin.Context) {
+	authHeader := ctx.GetHeader("Authorization")
+	header := strings.Split(authHeader, " ")
+	if len(header) != 2 {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "incorrect argument in the Authorization header",
+		})
 		return
 	}
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if header[0] != "Bearer" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "unexpected argument in the Authorization header",
+		})
 		return
 	}
-	ctx.JSON(http.StatusOK, Authorization{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+	tokenString := header[1]
+	claims, err := service.TokenToClaims(tokenString)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	if time.Now().Sub(claims.ExpiresAt.Time) > extendDuration {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"message": "your session has expired",
+		})
+		return
+	}
+	newTokenStr, err := service.GenerateTokenWithClaims(claims, time.Now().Add(accessTokenDuration))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"jwt": newTokenStr,
 	})
 }

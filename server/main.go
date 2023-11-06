@@ -37,9 +37,5 @@ func setupEnvironment() {
 	database = os.Getenv("DATABASE")
 	service.SetJwtKey(os.Getenv("JWTKEY"))
 	corsConfig = cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{
-		"http://localhost:5173",
-		"http://localhost:80",
-	}
-	corsConfig.AllowCredentials = true
+    corsConfig.AllowAllOrigins = true
 }

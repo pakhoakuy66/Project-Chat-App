@@ -16,7 +16,7 @@ type User struct {
 	BirthDay    time.Time `gorm:"type:date"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	Friends     []Friend `gorm:"foreignKey:UserID;references:ID;foreignKey:FriendID;references:ID"`
+	Friends     []Friend `gorm:"foreignKey:UserID,FriendID;references:ID;foreignKey:FriendID;references:ID"`
 }
 
 func (user *User) GenderStr() string {

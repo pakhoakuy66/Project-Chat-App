@@ -4,9 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"server/controller"
+	"server/middleware"
 )
 
 func InitFriendRoute(r *gin.Engine) {
 	friendRoute := r.Group("friend")
-	friendRoute.GET("/:id", controller.GetAllFriend)
+	friendRoute.Use(middleware.Authorize)
+	friendRoute.GET("/all", controller.GetAllFriend)
 }
