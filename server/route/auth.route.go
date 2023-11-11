@@ -11,4 +11,5 @@ func InitAuthRoute(r *gin.Engine) {
 	authRoute.POST("/register", controller.Register)
 	authRoute.POST("/login", controller.Login)
 	authRoute.POST("/refresh", controller.Refresh)
+	authRoute.GET("/profile", controller.Profile)
 }

@@ -9,16 +9,21 @@ import (
 )
 
 type Claims struct {
-	ID          uint      `json:"id"`
-	Username    string    `json:"username"`
-	Gender      string    `json:"gender"`
-	FirstName   string    `json:"firstname"`
-	LastName    string    `json:"lastname"`
-	Email       string    `json:"email"`
-	PhoneNumber string    `json:"phonenumber"`
-	BirthDay    time.Time `json:"birthday"`
-	CreatedAt   time.Time `json:"createdat"`
-	jwt.RegisteredClaims
+	ID                   uint      `json:"id"`
+	Username             string    `json:"username"`
+	Gender               string    `json:"gender"`
+	FirstName            string    `json:"firstname"`
+	LastName             string    `json:"lastname"`
+	Email                string    `json:"email"`
+	PhoneNumber          string    `json:"phonenumber"`
+	BirthDay             time.Time `json:"birthday"`
+	CreatedAt            time.Time `json:"createdAt"`
+	jwt.RegisteredClaims `json:"-"`
+}
+
+type Credentials struct {
+	Jwt       string `json:"jwt"`
+	ExpiredAt int64  `json:"expiredAt"`
 }
 
 var jwtKey []byte
@@ -27,8 +32,8 @@ func SetJwtKey(key string) {
 	jwtKey = []byte(key)
 }
 
-func GenerateTokenWithUser(user *model.User, expirationTime time.Time) (string, error) {
-	return GenerateTokenWithClaims(
+func UserToCreds(user *model.User, expirationTime time.Time) (Credentials, error) {
+	return ClaimsToCreds(
 		&Claims{
 			ID:          user.ID,
 			Username:    user.Username,
@@ -39,26 +44,27 @@ func GenerateTokenWithUser(user *model.User, expirationTime time.Time) (string, 
 			PhoneNumber: user.PhoneNumber,
 			BirthDay:    user.BirthDay,
 			CreatedAt:   user.CreatedAt,
-			RegisteredClaims: jwt.RegisteredClaims{
-				ExpiresAt: jwt.NewNumericDate(expirationTime),
-			},
 		},
 		expirationTime,
 	)
 }
 
-func GenerateTokenWithClaims(claims *Claims, expirationTime time.Time) (string, error) {
+func ClaimsToCreds(claims *Claims, expirationTime time.Time) (Credentials, error) {
+	claims.RegisteredClaims = jwt.RegisteredClaims{
+		ExpiresAt: jwt.NewNumericDate(expirationTime),
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtKey)
+	tokenStr, err := token.SignedString(jwtKey)
+	return Credentials{Jwt: tokenStr, ExpiredAt: expirationTime.UnixMilli()}, err
 }
 
-func TokenToClaims(tokenStr string) (*Claims, error) {
+func TokenToClaims(tokenStr string) (Claims, error) {
 	var claims Claims
 	_, err := jwt.ParseWithClaims(tokenStr, &claims, func(t *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
 	if err != nil {
-		return nil, err
+		return Claims{}, err
 	}
-	return &claims, nil
+	return claims, nil
 }

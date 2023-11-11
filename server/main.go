@@ -23,7 +23,7 @@ func main() {
 	r := gin.Default()
 	r.Use(cors.New(corsConfig))
 	route.InitAuthRoute(r)
-	route.InitFriendRoute(r)
+	route.InitFriendsRoute(r)
 	r.Run(":" + port)
 }
 

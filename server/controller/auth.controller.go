@@ -11,7 +11,7 @@ import (
 	"server/service"
 )
 
-type RegisterRequest struct {
+type registerRequest struct {
 	Username    string    `json:"username" binding:"required"`
 	Password    string    `json:"password" binding:"required"`
 	Gender      string    `json:"gender" binding:"required"`
@@ -22,21 +22,16 @@ type RegisterRequest struct {
 	BirthDay    time.Time `json:"birthday" binding:"required"`
 }
 
-type LoginRequest struct {
+type loginRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
-var accessTokenDuration = 10 * time.Minute
-
-var extendDuration = 10 * time.Minute
+var accessTokenDuration = 20 * time.Minute
 
 func Register(ctx *gin.Context) {
-	var req RegisterRequest
-	var err error
-	var hashedPassword string
-	var user model.User
-	if err = ctx.ShouldBindJSON(&req); err != nil {
+	var req = registerRequest{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -52,12 +47,12 @@ func Register(ctx *gin.Context) {
 		})
 		return
 	}
-	hashedPassword, err = service.HashPassword(req.Password)
+	hashedPassword, err := service.HashPassword(req.Password)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	user = model.User{
+	if err := model.DB.Create(&model.User{
 		Username:    req.Username,
 		Password:    hashedPassword,
 		Gender:      req.Gender == "male",
@@ -66,9 +61,7 @@ func Register(ctx *gin.Context) {
 		Email:       req.Email,
 		PhoneNumber: req.PhoneNumber,
 		BirthDay:    req.BirthDay,
-	}
-	result := model.DB.Create(&user)
-	if err = result.Error; err != nil {
+	}).Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -76,30 +69,27 @@ func Register(ctx *gin.Context) {
 }
 
 func Login(ctx *gin.Context) {
-	var req LoginRequest
-	var err error
-	var result model.User
-	var tokenStr string
-	if err = ctx.ShouldBindJSON(&req); err != nil {
+	var req = loginRequest{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err = model.DB.Where(&model.User{Username: req.Username}).First(&result).Error; err != nil {
+	result := model.User{}
+	if err := model.DB.Where(&model.User{Username: req.Username}).First(&result).Error; err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	if err = service.CheckPassword(req.Password, result.Password); err != nil {
+	if err := service.CheckPassword(req.Password, result.Password); err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	tokenStr, err = service.GenerateTokenWithUser(&result, time.Now().Add(accessTokenDuration))
+	expiredTime := time.Now().Add(accessTokenDuration)
+	creds, err := service.UserToCreds(&result, expiredTime)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"jwt": tokenStr,
-	})
+	ctx.JSON(http.StatusOK, creds)
 }
 
 func Refresh(ctx *gin.Context) {
@@ -125,20 +115,39 @@ func Refresh(ctx *gin.Context) {
 		})
 		return
 	}
-	if time.Now().Sub(claims.ExpiresAt.Time) > extendDuration {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"message": "your session has expired",
-		})
-		return
-	}
-	newTokenStr, err := service.GenerateTokenWithClaims(claims, time.Now().Add(accessTokenDuration))
+	expiredTime := time.Now().Add(accessTokenDuration)
+	newCreds, err := service.ClaimsToCreds(&claims, expiredTime)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"jwt": newTokenStr,
-	})
+	ctx.JSON(http.StatusOK, newCreds)
+}
+
+func Profile(ctx *gin.Context) {
+	authHeader := ctx.GetHeader("Authorization")
+	header := strings.Split(authHeader, " ")
+	if len(header) != 2 {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "incorrect argument in the Authorization header",
+		})
+		return
+	}
+	if header[0] != "Bearer" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "unexpected argument in the Authorization header",
+		})
+		return
+	}
+	tokenString := header[1]
+	claims, err := service.TokenToClaims(tokenString)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, claims)
 }

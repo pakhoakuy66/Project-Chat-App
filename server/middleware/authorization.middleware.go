@@ -3,7 +3,6 @@ package middleware
 import (
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -33,12 +32,6 @@ func Authorize(ctx *gin.Context) {
 		})
 		return
 	}
-	if time.Now().Sub(claims.ExpiresAt.Time) > 0 {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"message": "your session has expired",
-		})
-		return
-	}
-	ctx.Set("claims", claims)
+	ctx.Set("claims", &claims)
 	ctx.Next()
 }
