@@ -15,7 +15,7 @@
             <img
               src="/images/364075442_1029275301407450_5078046921245816099_n.jpg"
               alt=""
-              class="bg-whitep-2 w-auto rounded border-4 bg-white hover:border-blue-300"
+              class="w-auto rounded border-4 bg-white p-2 hover:border-blue-300"
             />
           </div>
           <div class="absolute right-48 top-52 flex w-max">
@@ -28,7 +28,9 @@
 
           <main class="absolute right-24 h-max">
             <div class="w-full text-center">
-              <p class="mb-4 mt-14 text-4xl text-white">John Doe</p>
+              <p class="mb-4 mt-14 text-4xl text-white" id="full-name">
+                John Doe
+              </p>
             </div>
 
             <div class="rounded-sm border-2 border-white pl-3">
@@ -36,19 +38,33 @@
                 <p class="mb-4 w-32 text-2xl text-white hover:text-blue-300">
                   Sex
                 </p>
-                <p class="mb-4 text-2xl text-white">: Male</p>
+                <p class="mb-4 text-2xl text-white">
+                  : <span id="sex">Male</span>
+                </p>
               </div>
               <div class="flex items-center">
                 <p class="mb-4 w-32 text-2xl text-white hover:text-blue-300">
                   Email
                 </p>
-                <p class="mb-4 text-2xl text-white">: johndoe@example.com</p>
+                <p class="mb-4 text-2xl text-white">
+                  : <span id="email">johndoe@example.com</span>
+                </p>
               </div>
               <div class="flex items-center">
                 <p class="mb-4 w-32 text-2xl text-white hover:text-blue-300">
                   Phone
                 </p>
-                <p class="mb-4 text-2xl text-white">: 123-456-7890</p>
+                <p class="mb-4 text-2xl text-white">
+                  : <span id="phonenumber">123-456-7890</span>
+                </p>
+              </div>
+              <div class="flex items-center">
+                <p class="mb-4 w-32 text-2xl text-white hover:text-blue-300">
+                  Created At
+                </p>
+                <p class="mb-4 text-2xl text-white">
+                  : <span id="created-at">01/01/1970 00:00:00</span>
+                </p>
               </div>
             </div>
             <ul
@@ -58,15 +74,17 @@
                 <a
                   href="/friendrequests/"
                   class="mb-4 text-2xl text-white hover:text-blue-300"
-                  >Friendrequests</a
                 >
+                  Friend Requests
+                </a>
               </li>
               <li>
                 <a
                   href="/friends/"
                   class="mb-4 text-2xl text-white hover:text-blue-300"
-                  >Friends</a
                 >
+                  Friends
+                </a>
               </li>
             </ul>
           </main>

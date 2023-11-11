@@ -11,6 +11,7 @@ export default defineConfig({
         profile: resolve(__dirname, "profile/index.html"),
         friends: resolve(__dirname, "friends/index.html"),
         friendrequests: resolve(__dirname, "friendrequests/index.html"),
+        chatrooms: resolve(__dirname, "chatrooms/index.html"),
       },
     },
   },
