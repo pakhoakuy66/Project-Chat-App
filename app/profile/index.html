@@ -5,7 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ChatApp</title>
   </head>
-  <body>
+  <body class="flex min-h-screen flex-col bg-[#99CDD8]">
+    <div class="flex h-screen items-center justify-center">
+      <div class="relative">
+        <div
+          class="flex rounded-md border-x-[300px] border-y-[400px] border-black"
+        >
+          <div class="absolute left-0 top-0 flex w-auto">
+            <img
+              src="/images/364075442_1029275301407450_5078046921245816099_n.jpg"
+              alt=""
+              class="w-auto rounded border-4 bg-white p-2 hover:border-blue-300"
+            />
+          </div>
+          <div class="absolute right-48 top-52 flex w-max">
+            <img
+              src="/images/373291694_354780683575152_6972910423429722487_n.png"
+              alt=""
+              class="h-60 w-60 rounded-full border-8 border-white bg-white p-2 hover:border-blue-300"
+            />
+          </div>
+
+          <main class="absolute right-24 h-max">
+            <div class="w-full text-center">
+              <p class="mb-4 mt-14 text-4xl text-white" id="full-name">
+                John Doe
+              </p>
+            </div>
+
+            <div class="rounded-sm border-2 border-white pl-3">
+              <div class="flex h-full items-center">
+                <p class="mb-4 w-32 text-2xl text-white hover:text-blue-300">
+                  Sex
+                </p>
+                <p class="mb-4 text-2xl text-white">
+                  : <span id="sex">Male</span>
+                </p>
+              </div>
+              <div class="flex items-center">
+                <p class="mb-4 w-32 text-2xl text-white hover:text-blue-300">
+                  Email
+                </p>
+                <p class="mb-4 text-2xl text-white">
+                  : <span id="email">johndoe@example.com</span>
+                </p>
+              </div>
+              <div class="flex items-center">
+                <p class="mb-4 w-32 text-2xl text-white hover:text-blue-300">
+                  Phone
+                </p>
+                <p class="mb-4 text-2xl text-white">
+                  : <span id="phonenumber">123-456-7890</span>
+                </p>
+              </div>
+              <div class="flex items-center">
+                <p class="mb-4 w-32 text-2xl text-white hover:text-blue-300">
+                  Created At
+                </p>
+                <p class="mb-4 text-2xl text-white">
+                  : <span id="created-at">01/01/1970 00:00:00</span>
+                </p>
+              </div>
+            </div>
+            <ul
+              class="mt-5 flex justify-center gap-16 text-center text-xl font-semibold"
+            >
+              <li>
+                <a
+                  href="/friendrequests/"
+                  class="mb-4 text-2xl text-white hover:text-blue-300"
+                >
+                  Friend Requests
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/friends/"
+                  class="mb-4 text-2xl text-white hover:text-blue-300"
+                >
+                  Friends
+                </a>
+              </li>
+            </ul>
+          </main>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/profile/main.ts"></script>
   </body>
 </html>
