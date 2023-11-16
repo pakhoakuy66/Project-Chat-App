@@ -2,10 +2,69 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ChatApp</title>
   </head>
-  <body>
+
+  <body
+    class="flex min-h-screen items-center justify-center bg-[#99CDD8] bg-cover bg-center bg-no-repeat p-2"
+  >
+    <div
+      class="flex flex-col items-center gap-4 rounded-xl bg-[hsla(215,28%,17%,.8)] p-12 text-white"
+    >
+      <h1 class="text-[30px] font-bold">Friends List</h1>
+      <form>
+        <input
+          type="text"
+          placeholder="Looking for friends"
+          name="friend-name"
+          class="rounded-md p-1 text-black outline-none transition duration-150 hover:bg-[#FFE4E1]"
+        />
+        <button type="submit" class="h-6 w-6 rounded-lg bg-white text-black">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </form>
+      <ul class="grid grid-cols-2 gap-3" id="friends-list">
+        <li
+          class="my-3 flex w-full items-center rounded-xl border-[1px] bg-[#4284] p-3 text-black transition duration-100 hover:border-red-400 hover:bg-[#6f44c044]"
+        >
+          <img
+            class="float-left mr-3 h-16 w-16 rounded-[50%] border-[2px]"
+            src="/images/user.png"
+            alt=""
+          />
+          <div class="text-white">
+            <h2 class="">adam-calver</h2>
+          </div>
+          <button
+            class="ml-auto w-24 rounded-md bg-[#1877F2] text-white transition duration-150 hover:bg-[#2980b9] hover:text-black"
+          >
+            Friend
+          </button>
+        </li>
+        <li
+          class="my-3 flex w-full items-center rounded-xl border-[1px] bg-[#4284] p-3 text-black transition duration-100 hover:border-red-400 hover:bg-[#6f44c044]"
+        >
+          <img
+            class="float-left mr-3 h-16 w-16 rounded-[50%] border-[2px]"
+            src="/images/user.png"
+            alt=""
+          />
+          <div class="text-white">
+            <h2>melia-joli</h2>
+          </div>
+          <button
+            class="ml-auto w-24 rounded-md bg-[#1877F2] text-white transition duration-150 hover:bg-[#2980b9] hover:text-black"
+          >
+            Friend
+          </button>
+        </li>
+      </ul>
+    </div>
     <script type="module" src="/src/friends/main.ts"></script>
   </body>
 </html>
